@@ -40,9 +40,9 @@ echo "Don't worry if there isn't much output, it's being logged here: $INSTALL_L
 installnoninteractive "python-software-properties python g++ make"
 
 add-apt-repository -y 'deb http://us.archive.ubuntu.com/ubuntu/ precise multiverse'
-add-apt-repository -y 'deb-src http://us.archive.ubuntu.com/ubuntu/ precise multiverse'
+# add-apt-repository -y 'deb-src http://us.archive.ubuntu.com/ubuntu/ precise multiverse'
 add-apt-repository -y 'deb http://us.archive.ubuntu.com/ubuntu/ precise-updates multiverse'
-add-apt-repository -y 'deb-src http://us.archive.ubuntu.com/ubuntu/ precise-updates multiverse'
+# add-apt-repository -y 'deb-src http://us.archive.ubuntu.com/ubuntu/ precise-updates multiverse'
 
 # Get new list of packages.
 echo "Updating package lists..."
@@ -60,7 +60,7 @@ apt-get -q -y update >> $INSTALL_LOG
 
 installnoninteractive "openssh-server mysql-server nginx php5-cgi php5-fpm php-pear php5-dev sqlite3 memcached curl php5-gd php5-mcrypt php5-memcache php5-mhash php5-curl php5-imap php5-ldap php5-mysql php5-sqlite php5-pspell php5-tidy php-apc postfix git-core lrzsz zsh tmux vim python2.7-doc binutils binfmt-support ctags vim-doc vim-scripts indent"
 
-add-apt-repository -q -y ppa:chris-lea/node.js >> $INSTALL_LOG
+add-apt-repository -y ppa:chris-lea/node.js >> $INSTALL_LOG
 apt-get -q -y update >> $INSTALL_LOG
 installnoninteractive "nodejs"
 
@@ -160,7 +160,9 @@ server {
 server {
         listen 80;
         server_name ~^(?P<domain>.+)\$;
-        root   /var/www/\$domain/htdocs;
+	if ($domain ~* "^[0-9.]+$") { set $domain "_default"; }
+	if ($domain ~* "\.\.") { set $domain "_default"; }
+	root   /var/www/\$domain/htdocs;
         index index.html index.htm index.php;
 	# include /etc/nginx/security;
 
@@ -195,6 +197,25 @@ apc.shm_size = 48
 apc.include_once_override = 1
 apc.mmap_file_mask = /tmp/apc.XXXXXX
 APC_INI
+
+mkdir -p /var/www/
+chmod ugo+rwx /var/www
+chown -R www-data:www-data /var/www
+chmod -R g+s /var/www
+mkdir -p /var/www/_default/htdocs
+
+cat /var/www/_default/htdocs/index.php <<DEF_IDX
+<h1>Instructions</h1>
+<ol>Choose a domain, $domain
+<ol>Create a directory <code>/var/www/$domain/htdocs</code>
+<ol>Put website files in this directory.
+<ol>Profit!
+</ol>
+<p>There should be no need to create separate vhost configurations for individual domains.  The www will automatically be redirected to the non-www version.
+<h2>PHP Info</h2>
+<?php phpinfo(); ?>
+DEF_IDX
  
 /etc/init.d/php5-fpm start
 /etc/init.d/nginx start
+/etc/init.d/php5-fpm restart
