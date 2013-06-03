@@ -160,8 +160,8 @@ server {
 server {
         listen 80;
         server_name ~^(?P<domain>.+)\$;
-	if ($domain ~* "^[0-9.]+$") { set $domain "_default"; }
-	if ($domain ~* "\.\.") { set $domain "_default"; }
+	if (\$domain ~* "^[0-9.]+$") { set \$domain "_default"; }
+	if (\$domain ~* "\.\.") { set \$domain "_default"; }
 	root   /var/www/\$domain/htdocs;
         index index.html index.htm index.php;
 	# include /etc/nginx/security;
