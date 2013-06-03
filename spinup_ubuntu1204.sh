@@ -204,7 +204,7 @@ chown -R www-data:www-data /var/www
 chmod -R g+s /var/www
 mkdir -p /var/www/_default/htdocs
 
-cat /var/www/_default/htdocs/index.php <<DEF_IDX
+cat >> /var/www/_default/htdocs/index.php <<DEF_IDX
 <h1>Instructions</h1>
 <ol>Choose a domain, $domain
 <ol>Create a directory <code>/var/www/$domain/htdocs</code>
