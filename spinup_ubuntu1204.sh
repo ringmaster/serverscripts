@@ -64,10 +64,10 @@ add-apt-repository -q -y ppa:chris-lea/node.js >> $INSTALL_LOG
 apt-get -q -y update >> $INSTALL_LOG
 installnoninteractive "nodejs"
 
-adduser --system --no-create-home nginx
+# adduser --system --no-create-home nginx
 
 cat > /etc/nginx/nginx.conf <<NGINX_CONF
-user nginx www-data;
+user www-data www-data;
 worker_processes 4;
 pid /var/run/nginx.pid;
 
@@ -83,7 +83,7 @@ http {
 	tcp_nodelay on;
 	keepalive_timeout 65;
 	types_hash_max_size 2048;
-	# server_tokens off;
+	server_tokens off;
 
 	# server_names_hash_bucket_size 64;
 	# server_name_in_redirect off;
@@ -132,7 +132,7 @@ fastcgi_param	REQUEST_URI		\$request_uri;
 fastcgi_param	DOCUMENT_URI		\$document_uri;
 fastcgi_param	DOCUMENT_ROOT		\$document_root;
 fastcgi_param	SERVER_PROTOCOL		\$server_protocol;
-fastcgi_param   SCRIPT_FILENAME 	\$document_root$fastcgi_script_name;
+fastcgi_param   SCRIPT_FILENAME 	\$document_root\$fastcgi_script_name;
 fastcgi_param   PATH_INFO 		\$fastcgi_script_name;
 
 fastcgi_param	GATEWAY_INTERFACE	CGI/1.1;
@@ -148,6 +148,9 @@ fastcgi_param	SERVER_NAME		\$server_name;
 fastcgi_param	REDIRECT_STATUS		200;
 FCGI_PARAMS
 
+# Make a directory for the FPM sockets
+mkdir -p /var/run/php-fpm
+
 cat >> /etc/nginx/sites-available/VDR <<VDR
 server {
     server_name  ~^www\.(?P<wwwdomain>.*)$;
@@ -158,7 +161,7 @@ server {
         listen 80;
         server_name ~^(?P<domain>.+)\$;
         root   /var/www/\$domain/htdocs;
-        index index.php;
+        index index.html index.htm index.php;
 	# include /etc/nginx/security;
 
 	# Logging --
@@ -173,8 +176,8 @@ server {
  
         location ~ \.php$ {
 		try_files \$uri =404;
-                # fastcgi_pass unix:/var/run/php5-fpm/\$domain.socket;
-                fastcgi_pass 127.0.0.1:9000;
+                fastcgi_pass unix:/var/run/php-fpm/www.sock;
+                #fastcgi_pass unix:/var/run/php-fpm/$domain.sock;
                 fastcgi_index index.php;
                 include /etc/nginx/fastcgi_params;
         }
@@ -183,6 +186,10 @@ VDR
 
 ln -s /etc/nginx/sites-available/VDR /etc/nginx/sites-enabled/VDR
 
+# Change FPM's default "www" pool to use a socket instead of an IP and port
+sed -i 's/127\.0\.0\.1:9000/\/var\/run\/php-fpm\/www.sock/g' /etc/php5/fpm/pool.d/www.conf
+
+# Configure APC
 cat >> /etc/php5/conf.d/apc.ini <<APC_INI
 apc.shm_size = 48
 apc.include_once_override = 1
