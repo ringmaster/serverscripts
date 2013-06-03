@@ -60,8 +60,8 @@ apt-get -q -y update >> $INSTALL_LOG
 
 installnoninteractive "openssh-server mysql-server nginx php5-cgi php5-fpm php-pear php5-dev sqlite3 memcached curl php5-gd php5-mcrypt php5-memcache php5-mhash php5-curl php5-imap php5-ldap php5-mysql php5-sqlite php5-pspell php5-tidy php-apc postfix git-core lrzsz zsh tmux vim python2.7-doc binutils binfmt-support ctags vim-doc vim-scripts indent"
 
-add-apt-repository -y ppa:chris-lea/node.js
-apt-get update
+add-apt-repository -q -y ppa:chris-lea/node.js >> $INSTALL_LOG
+apt-get -q -y update >> $INSTALL_LOG
 installnoninteractive "nodejs"
 
 adduser --system --no-create-home nginx
@@ -151,19 +151,19 @@ FCGI_PARAMS
 cat >> /etc/nginx/sites-available/VDR <<VDR
 server {
     server_name  ~^www\.(?P<wwwdomain>.*)$;
-    rewrite ^(.*) http://$wwwdomain$1 permanent;
+    rewrite ^(.*) http://\$wwwdomain\$1 permanent;
 }
 
 server {
         listen 80 default_server;
-        server_name ~^(?P<domain>.+)$;
-        root   /var/www/$domain/htdocs;
+        server_name ~^(?P<domain>.+)\$;
+        root   /var/www/\$domain/htdocs;
         index index.php;
 	# include /etc/nginx/security;
 
 	# Logging --
-	access_log  /var/log/nginx/$domain.access.log;
-	error_log  /var/log/nginx/$domain.error.log notice;
+	access_log  /var/log/nginx/\$domain.access.log;
+	error_log  /var/log/nginx/\$domain.error.log notice;
 
         # serve static files directly
         location ~* ^.+.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt)$ {
@@ -172,8 +172,8 @@ server {
         }
  
         location ~ \.php$ {
-		try_files $uri =404;
-                fastcgi_pass unix:/var/run/php5-fpm/$domain.socket;
+		try_files \$uri =404;
+                fastcgi_pass unix:/var/run/php5-fpm/\$domain.socket;
                 fastcgi_index index.php;
                 include /etc/nginx/fastcgi_params;
         }
