@@ -155,7 +155,7 @@ server {
 }
 
 server {
-        listen 80 default_server;
+        listen 80;
         server_name ~^(?P<domain>.+)\$;
         root   /var/www/\$domain/htdocs;
         index index.php;
