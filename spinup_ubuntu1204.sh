@@ -173,7 +173,8 @@ server {
  
         location ~ \.php$ {
 		try_files \$uri =404;
-                fastcgi_pass unix:/var/run/php5-fpm/\$domain.socket;
+                # fastcgi_pass unix:/var/run/php5-fpm/\$domain.socket;
+                fastcgi_pass 127.0.0.1:9000;
                 fastcgi_index index.php;
                 include /etc/nginx/fastcgi_params;
         }
