@@ -1,16 +1,17 @@
 #!/bin/bash
 
-# This script is meant to configure a stack on Ubuntu 11.04
-# It installs Apache mpm-worker, a threaded version of Apache that is faster 
-# than mpm-prefork, especially for serving small files.
-# It also installs PHP as FastCGI, which is better for a couple of reasons:
-# * FastCGI processes stay in memory to serve multiple requests.
-# * FastCGI is separate form Apache, so Apache doesn't need to load all of PHP 
-#     in order to serve static files, as it does with mod_php
-# PHP is installed with gd, mcrypt, mhash, imap, ldap, pdo, mysql, sqlite,
+# Easy install:
+# wget -qO- https://raw.github.com/ringmaster/serverscripts/master/spinup_ubuntu1204.sh | sudo bash
+
+
+# This script is meant to configure a LNMP stack on Ubuntu 12.04 LTS
+# It installs Nginx with PHP-FPM configured with a single pool
+# PHP is installed with gd, mcrypt, mhash, imap, ldap, pdo, mysql, sqlite, mongo,
 # memcache, curl, pspell, tidy
 # PEAR is installed and APC is enabled
 # memcached is installed
+# mongodb is installed
+
 
 INSTALL_LOG=/var/log/spinup_ubuntu1204.log
 
@@ -39,6 +40,7 @@ echo "Don't worry if there isn't much output, it's being logged here: $INSTALL_L
 
 installnoninteractive "python-software-properties python g++ make"
 
+# Add multiverse to the repository sources file.
 add-apt-repository -y 'deb http://us.archive.ubuntu.com/ubuntu/ precise multiverse'
 # add-apt-repository -y 'deb-src http://us.archive.ubuntu.com/ubuntu/ precise multiverse'
 add-apt-repository -y 'deb http://us.archive.ubuntu.com/ubuntu/ precise-updates multiverse'
@@ -48,21 +50,14 @@ add-apt-repository -y 'deb http://us.archive.ubuntu.com/ubuntu/ precise-updates 
 echo "Updating package lists..."
 apt-get -q -y update >> $INSTALL_LOG
 
-# Add multiverse to the repository sources file.
-#cat >> /etc/apt/sources.list <<APT_SOURCES
-
-# Multiverse repositories. !!Required for some server packages!! DO NOT REMOVE!!
-# deb http://us.archive.ubuntu.com/ubuntu/ precise multiverse
-# deb-src http://us.archive.ubuntu.com/ubuntu/ precise multiverse
-# deb http://us.archive.ubuntu.com/ubuntu/ precise-updates multiverse
-# deb-src http://us.archive.ubuntu.com/ubuntu/ precise-updates multiverse
-# APT_SOURCES
-
-installnoninteractive "openssh-server mysql-server nginx php5-cgi php5-fpm php-pear php5-dev sqlite3 memcached curl php5-gd php5-mcrypt php5-memcache php5-mhash php5-curl php5-imap php5-ldap php5-mysql php5-sqlite php5-pspell php5-tidy php-apc postfix git-core lrzsz zsh tmux vim python2.7-doc binutils binfmt-support ctags vim-doc vim-scripts indent"
+installnoninteractive "openssh-server mysql-server nginx php5-cgi php5-fpm php-pear php5-dev sqlite3 memcached curl php5-gd php5-mcrypt php5-memcache php5-mhash php5-curl php5-imap php5-ldap php5-mysql php5-mongo php5-sqlite php5-pspell php5-tidy php-apc postfix git-core lrzsz zsh tmux vim python2.7-doc binutils binfmt-support ctags vim-doc vim-scripts indent"
 
 add-apt-repository -y ppa:chris-lea/node.js >> $INSTALL_LOG
+apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10 >> $INSTALL_LOG
+mkdir -p /etc/apt/sources.list.d >> $INSTALL_LOG
+echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/10gen.list
 apt-get -q -y update >> $INSTALL_LOG
-installnoninteractive "nodejs"
+installnoninteractive "nodejs mongodb-10gen"
 
 # adduser --system --no-create-home nginx
 
@@ -206,10 +201,11 @@ mkdir -p /var/www/_default/htdocs
 
 cat >> /var/www/_default/htdocs/index.php <<DEF_IDX
 <h1>Instructions</h1>
-<ol>Choose a domain, $domain
-<ol>Create a directory <code>/var/www/$domain/htdocs</code>
-<ol>Put website files in this directory.
-<ol>Profit!
+<ol>
+	<li>Choose a domain, <span style="color:green;">\$domain</span>
+	<li>Create a directory <code>/var/www/<span style="color:green;">\$domain</span>/htdocs</code>
+	<li>Put website files in this directory.
+	<li>Profit!
 </ol>
 <p>There should be no need to create separate vhost configurations for individual domains.  The www will automatically be redirected to the non-www version.
 <h2>PHP Info</h2>
