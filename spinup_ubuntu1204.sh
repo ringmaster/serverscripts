@@ -50,7 +50,7 @@ add-apt-repository -y 'deb http://us.archive.ubuntu.com/ubuntu/ precise-updates 
 echo "Updating package lists..."
 apt-get -q -y update >> $INSTALL_LOG
 
-installnoninteractive "openssh-server mysql-server nginx php5-cgi php5-fpm php-pear php5-dev sqlite3 memcached curl php5-gd php5-mcrypt php5-memcache php5-mhash php5-curl php5-imap php5-ldap php5-mysql php5-mongo php5-sqlite php5-pspell php5-tidy php-apc postfix git-core lrzsz zsh tmux vim python2.7-doc binutils binfmt-support ctags vim-doc vim-scripts indent"
+installnoninteractive "openssh-server mysql-server nginx php5-cgi php5-fpm php-pear php5-dev sqlite3 memcached curl php5-gd php5-mcrypt php5-memcache php5-common php5-curl php5-imap php5-ldap php5-mysql php5-sqlite php5-pspell php5-tidy php-apc postfix git-core lrzsz zsh tmux vim python2.7-doc binutils binfmt-support exuberant-ctags vim-doc vim-scripts indent"
 
 add-apt-repository -y ppa:chris-lea/node.js >> $INSTALL_LOG
 apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10 >> $INSTALL_LOG
@@ -58,6 +58,7 @@ mkdir -p /etc/apt/sources.list.d >> $INSTALL_LOG
 echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/10gen.list
 apt-get -q -y update >> $INSTALL_LOG
 installnoninteractive "nodejs mongodb-10gen"
+pecl install mongo
 
 # adduser --system --no-create-home nginx
 
