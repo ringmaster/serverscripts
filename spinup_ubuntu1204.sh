@@ -46,22 +46,31 @@ add-apt-repository -y 'deb http://us.archive.ubuntu.com/ubuntu/ precise multiver
 add-apt-repository -y 'deb http://us.archive.ubuntu.com/ubuntu/ precise-updates multiverse'
 # add-apt-repository -y 'deb-src http://us.archive.ubuntu.com/ubuntu/ precise-updates multiverse'
 
+# Add updated PHP5.4 PPA
+add-apt-repository -y ppa:ondrej/php5
+
+# Add node.js repository sources
+add-apt-repository -y ppa:chris-lea/node.js >> $INSTALL_LOG
+apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10 >> $INSTALL_LOG
+
+# Add mongo repository sources
+mkdir -p /etc/apt/sources.list.d >> $INSTALL_LOG
+echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/10gen.list
+
 # Get new list of packages.
 echo "Updating package lists..."
 apt-get -q -y update >> $INSTALL_LOG
 
-installnoninteractive "openssh-server mysql-server nginx php5-cgi php5-fpm php-pear php5-dev sqlite3 memcached curl php5-gd php5-mcrypt php5-memcache php5-common php5-curl php5-imap php5-ldap php5-mysql php5-sqlite php5-pspell php5-tidy php-apc postfix git-core lrzsz zsh tmux vim python2.7-doc binutils binfmt-support exuberant-ctags vim-doc vim-scripts indent"
+# Install everything
+installnoninteractive "openssh-server mysql-server nginx php5-cgi php5-fpm php-pear php5-dev sqlite3 memcached curl php5-gd php5-mcrypt php5-memcache php5-common php5-curl php5-imap php5-ldap php5-mysql php5-sqlite php5-pspell php5-tidy php-apc postfix git-core lrzsz zsh tmux vim python2.7-doc binutils binfmt-support exuberant-ctags vim-doc vim-scripts indent nodejs mongodb-10gen"
 
-add-apt-repository -y ppa:chris-lea/node.js >> $INSTALL_LOG
-apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10 >> $INSTALL_LOG
-mkdir -p /etc/apt/sources.list.d >> $INSTALL_LOG
-echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/10gen.list
-apt-get -q -y update >> $INSTALL_LOG
-installnoninteractive "nodejs mongodb-10gen"
+# Compile mongo extensions for php
 pecl install mongo >> $INSTALL_LOG
 
+# The Nginx service will use www-data user, so don't create a user for Nginx
 # adduser --system --no-create-home nginx
 
+# Write the Nginx config
 cat > /etc/nginx/nginx.conf <<NGINX_CONF
 user www-data www-data;
 worker_processes 4;
@@ -182,29 +191,32 @@ server {
 }
 VDR
 
+# Enable the VDR site config
 ln -s /etc/nginx/sites-available/VDR /etc/nginx/sites-enabled/VDR
 
 # Change FPM's default "www" pool to use a socket instead of an IP and port
 sed -i 's/127\.0\.0\.1:9000/\/var\/run\/php-fpm\/www.sock/g' /etc/php5/fpm/pool.d/www.conf
 
-# Configure APC
+# Add configuration options to APC
 cat >> /etc/php5/conf.d/apc.ini <<APC_INI
-apc.shm_size = 48
+apc.shm_size = 48M
 apc.include_once_override = 1
 apc.mmap_file_mask = /tmp/apc.XXXXXX
 APC_INI
 
-# Configure Mongo
+# Enable the Mongo extension in PHP
 cat > /etc/php5/conf.d/20-mongodb.ini <<MONGO_INI
 extension=mongo.so
 MONGO_INI
 
+# Create the webroot and put some default stuff in it
 mkdir -p /var/www/
 chmod ugo+rwx /var/www
 chown -R www-data:www-data /var/www
 chmod -R g+s /var/www
 mkdir -p /var/www/_default/htdocs
 
+# Here's a default web page, accessible at the IP address of the server
 cat > /var/www/_default/htdocs/index.php <<DEF_IDX
 <h1>Instructions</h1>
 <ol>
@@ -218,6 +230,7 @@ cat > /var/www/_default/htdocs/index.php <<DEF_IDX
 <?php phpinfo(); ?>
 DEF_IDX
  
+# Start some services
 /etc/init.d/php5-fpm start
 /etc/init.d/nginx start
 /etc/init.d/php5-fpm restart
