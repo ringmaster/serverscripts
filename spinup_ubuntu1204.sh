@@ -194,8 +194,8 @@ VDR
 # Enable the VDR site config
 ln -s /etc/nginx/sites-available/VDR /etc/nginx/sites-enabled/VDR
 
-# Change FPM's default "www" pool to use a socket instead of an IP and port
-sed -i 's/127\.0\.0\.1:9000/\/var\/run\/php-fpm\/www.sock/g' /etc/php5/fpm/pool.d/www.conf
+# Change FPM's default "www" pool to use our socket instead of an IP and port or a different socket
+sed 's/listen =.*/listen = \/var\/run\/php-fpm\/www.sock/g' /etc/php5/fpm/pool.d/www.conf
 
 # Add configuration options to APC
 cat >> /etc/php5/conf.d/apc.ini <<APC_INI
