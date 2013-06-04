@@ -58,7 +58,7 @@ mkdir -p /etc/apt/sources.list.d >> $INSTALL_LOG
 echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/10gen.list
 apt-get -q -y update >> $INSTALL_LOG
 installnoninteractive "nodejs mongodb-10gen"
-pecl install mongo
+pecl install mongo >> $INSTALL_LOG
 
 # adduser --system --no-create-home nginx
 
@@ -194,13 +194,18 @@ apc.include_once_override = 1
 apc.mmap_file_mask = /tmp/apc.XXXXXX
 APC_INI
 
+# Configure Mongo
+cat > /etc/php5/conf.d/20-mongodb.ini <<MONGO_INI
+extension=mongo.so
+MONGO_INI
+
 mkdir -p /var/www/
 chmod ugo+rwx /var/www
 chown -R www-data:www-data /var/www
 chmod -R g+s /var/www
 mkdir -p /var/www/_default/htdocs
 
-cat >> /var/www/_default/htdocs/index.php <<DEF_IDX
+cat > /var/www/_default/htdocs/index.php <<DEF_IDX
 <h1>Instructions</h1>
 <ol>
 	<li>Choose a domain, <span style="color:green;">\$domain</span>
