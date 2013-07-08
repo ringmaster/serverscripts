@@ -27,7 +27,7 @@ touch $INSTALL_LOG
 function installnoninteractive() {
 	local packages="$1"
 	echo "Installing: $packages"
-	sudo bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -q -y $packages >> $INSTALL_LOG"
+	DEBIAN_FRONTEND=noninteractive apt-get install -q -y $packages >> $INSTALL_LOG
 }
 
 # Make sure script is being run as root.
