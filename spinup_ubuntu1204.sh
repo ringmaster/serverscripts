@@ -19,6 +19,7 @@ INSTALL_LOG=/var/log/spinup_ubuntu1204.log
 # but just to be careful...
 if [ -e $INSTALL_LOG ]; then
 	echo "You have already run this script. Doing so again might make things weird."
+	echo "rm $INSTALL_LOG ; # To reset the ability to run this script"
 	exit 2;
 fi
 
@@ -27,7 +28,8 @@ touch $INSTALL_LOG
 function installnoninteractive() {
 	local packages="$1"
 	echo "Installing: $packages"
-	sudo bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -q -y $packages >> $INSTALL_LOG"
+	#sudo bash -c "DEBIAN_FRONTEND=noninteractive apt-get install -q -y $packages >> $INSTALL_LOG"
+	apt-get install -q -y $packages >> $INSTALL_LOG
 }
 
 # Make sure script is being run as root.
@@ -36,7 +38,7 @@ if [ `id -u` != 0 ]; then
 	exit 1
 fi
 
-echo "Don't worry if there isn't much output, it's being logged here: $INSTALL_LOG"
+# echo "Don't worry if there isn't much output, it's being logged here: $INSTALL_LOG"
 
 installnoninteractive "python-software-properties python g++ make"
 
@@ -60,6 +62,12 @@ echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | 
 # Get new list of packages.
 echo "Updating package lists..."
 apt-get -q -y update >> $INSTALL_LOG
+
+# Error? PHP5-FPM (PHP 5.5) won't install - can't install libsystemd-daemon0
+# Might need this for the error:  http://askubuntu.com/questions/326681/php5-fpm-php-5-5-wont-install-cant-install-libsystemd-daemon0
+#  wget http://ftp.us.debian.org/debian/pool/main/s/systemd/libsystemd-daemon0_44-12_amd64.deb
+#  dpkg -i *.deb
+#  apt-get install php5-fpm
 
 # Install everything
 installnoninteractive "openssh-server mysql-server nginx php5-cgi php5-fpm php-pear php5-dev sqlite3 memcached curl php5-gd php5-mcrypt php5-memcache php5-common php5-curl php5-imap php5-ldap php5-mysql php5-sqlite php5-pspell php5-tidy php-apc postfix git-core lrzsz zsh tmux vim python2.7-doc binutils binfmt-support exuberant-ctags vim-doc vim-scripts indent nodejs mongodb-10gen"
