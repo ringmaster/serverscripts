@@ -40,6 +40,9 @@ fi
 
 # echo "Don't worry if there isn't much output, it's being logged here: $INSTALL_LOG"
 
+# Make sure we're up to date enough to get the apt repo tools.
+apt-get -q -y update >> $INSTALL_LOG
+
 installnoninteractive "python-software-properties python g++ make"
 
 # Add multiverse to the repository sources file.
@@ -206,14 +209,14 @@ ln -s /etc/nginx/sites-available/VDR /etc/nginx/sites-enabled/VDR
 sed -i 's/listen =.*/listen = \/var\/run\/php-fpm\/www.sock/g' /etc/php5/fpm/pool.d/www.conf
 
 # Add configuration options to APC
-cat >> /etc/php5/conf.d/apc.ini <<APC_INI
+cat >> /etc/php5/fpm/conf.d/apc.ini <<APC_INI
 apc.shm_size = 48M
 apc.include_once_override = 1
 apc.mmap_file_mask = /tmp/apc.XXXXXX
 APC_INI
 
 # Enable the Mongo extension in PHP
-cat > /etc/php5/conf.d/20-mongodb.ini <<MONGO_INI
+cat > /etc/php5/fpm/conf.d/20-mongodb.ini <<MONGO_INI
 extension=mongo.so
 MONGO_INI
 
