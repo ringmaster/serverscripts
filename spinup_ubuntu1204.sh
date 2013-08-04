@@ -108,9 +108,9 @@ http {
 	default_type application/octet-stream;
 
 # Logging Settings
-log_format gzip '$remote_addr - $remote_user [$time_local]  '
-                '"$request" $status $bytes_sent '
-                '"$http_referer" "$http_user_agent" "$gzip_ratio"';
+log_format gzip '\$remote_addr - \$remote_user [\$time_local]  '
+                '"\$request" \$status \$bytes_sent '
+                '"\$http_referer" "\$http_user_agent" "\$gzip_ratio"';
 
 	access_log /var/log/nginx/access.log gzip buffer=32k;
 	error_log /var/log/nginx/error.log notice;
